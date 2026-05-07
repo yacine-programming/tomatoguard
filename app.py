@@ -105,30 +105,58 @@ def load_models():
     """Charge YOLO, LSTM et scaler une seule fois au démarrage"""
     global yolo_model, lstm_model, scaler
 
+    import traceback
+
+    models_dir = os.environ.get('MODELS_DIR', './models')
+    print(f"📂 Recherche des modèles dans : {os.path.abspath(models_dir)}")
+
+    if not os.path.exists(models_dir):
+        print(f"❌ Le dossier {models_dir} n'existe pas !")
+        return
+
+    files = os.listdir(models_dir)
+    print(f"📋 Fichiers trouvés : {files}")
+
+    # YOLO
     try:
         from ultralytics import YOLO
-        from tensorflow.keras.models import load_model
-
-        models_dir = os.environ.get('MODELS_DIR', './models')
-        if not os.path.exists(models_dir):
-            os.makedirs(models_dir)
-
-        for f in os.listdir(models_dir):
-            path = os.path.join(models_dir, f)
+        for f in files:
             if f.endswith('.pt'):
+                path = os.path.join(models_dir, f)
                 yolo_model = YOLO(path)
                 print(f"✅ YOLO chargé: {f}")
-            elif f.endswith('.h5'):
+                break
+    except Exception as e:
+        print(f"❌ Erreur YOLO: {e}")
+        traceback.print_exc()
+
+    # LSTM
+    try:
+        from tensorflow.keras.models import load_model
+        for f in files:
+            if f.endswith('.h5'):
+                path = os.path.join(models_dir, f)
                 lstm_model = load_model(path)
                 print(f"✅ LSTM chargé: {f}")
-            elif f.endswith('.pkl'):
+                break
+    except Exception as e:
+        print(f"❌ Erreur LSTM: {e}")
+        traceback.print_exc()
+
+    # Scaler
+    try:
+        for f in files:
+            if f.endswith('.pkl'):
+                path = os.path.join(models_dir, f)
                 scaler = joblib.load(path)
                 print(f"✅ Scaler chargé: {f}")
-
-        if not all([yolo_model, lstm_model, scaler]):
-            print("⚠️  Certains modèles sont manquants dans ./models/")
+                break
     except Exception as e:
-        print(f"❌ Erreur chargement modèles: {e}")
+        print(f"❌ Erreur Scaler: {e}")
+        traceback.print_exc()
+
+    print(
+        f"📊 État final : YOLO={yolo_model is not None} LSTM={lstm_model is not None} Scaler={scaler is not None}")
 
 # ==================== BASE DE DONNÉES ====================
 
