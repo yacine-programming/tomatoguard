@@ -13,6 +13,7 @@ Mode TEST: 2 minutes simulent 1 jour (7 jours = 14 min)
 Mode NORMAL: 1 jour réel = 1 jour
 """
 
+import threading
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import sqlite3
@@ -474,10 +475,16 @@ def climate_history():
 # ==================== LANCEMENT ====================
 
 
-# Initialisation au chargement du module (fonctionne avec Gunicorn ET python app.py)
-print("\n🍅 TomatoGuard — Initialisation\n")
-init_db()
-load_models()
+def background_init():
+    """Initialisation lourde en arrière-plan pour ne pas bloquer le démarrage"""
+    print("\n🍅 TomatoGuard — Initialisation en arrière-plan\n")
+    init_db()
+    load_models()
+    print("\n✅ Initialisation terminée — serveur prêt\n")
+
+
+# Lance l'initialisation dans un thread séparé
+threading.Thread(target=background_init, daemon=True).start()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
