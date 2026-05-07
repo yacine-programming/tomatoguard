@@ -99,6 +99,7 @@ TREATMENT_RECOMMENDATIONS = {
 
 # ==================== CHARGEMENT DES MODÈLES ====================
 
+
 def load_models():
     """Charge YOLO, LSTM et scaler une seule fois au démarrage"""
     global yolo_model, lstm_model, scaler
@@ -130,6 +131,7 @@ def load_models():
 
 # ==================== BASE DE DONNÉES ====================
 
+
 def init_db():
     conn = sqlite3.connect('climate.db')
     conn.execute('''
@@ -146,6 +148,7 @@ def init_db():
     conn.close()
     print("✅ Base de données prête")
 
+
 def get_last_7_days():
     """
     Récupère 7 'jours' de données selon le mode actuel.
@@ -157,7 +160,8 @@ def get_last_7_days():
 
     if APP_MODE == 'test':
         # 14 minutes = 7 "jours" de 2 min
-        since = (datetime.now() - timedelta(minutes=14)).strftime('%Y-%m-%d %H:%M:%S')
+        since = (datetime.now() - timedelta(minutes=14)
+                 ).strftime('%Y-%m-%d %H:%M:%S')
         # Grouper par fenêtre de 2 minutes (timestamp tronqué)
         c.execute('''
             SELECT
@@ -173,7 +177,8 @@ def get_last_7_days():
         ''', (since,))
     else:
         # Mode normal : 7 derniers jours
-        since = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S')
+        since = (datetime.now() - timedelta(days=7)
+                 ).strftime('%Y-%m-%d %H:%M:%S')
         c.execute('''
             SELECT DATE(timestamp) AS day,
                 AVG(temperature), AVG(humidity), AVG(precipitation),
@@ -191,10 +196,12 @@ def get_last_7_days():
 
 # ==================== ROUTES ====================
 
+
 @app.route('/')
 def home():
     """Sert la page web mobile"""
     return send_from_directory('static', 'index.html')
+
 
 @app.route('/api/status', methods=['GET'])
 def status():
@@ -212,6 +219,7 @@ def status():
         'minimum_days_required': 3
     }), 200
 
+
 @app.route('/api/mode', methods=['POST'])
 def switch_mode():
     """Bascule entre 'normal' et 'test'"""
@@ -226,12 +234,14 @@ def switch_mode():
     print(f"🔄 Mode changé: {APP_MODE}")
     return jsonify({'status': 'ok', 'mode': APP_MODE}), 200
 
+
 @app.route('/api/climate', methods=['POST'])
 def receive_climate():
     """Reçoit les données capteurs de l'ESP32"""
     try:
         data = request.get_json()
-        required = ['temperature', 'humidity', 'precipitation', 'wind_speed', 'leaf_wetness']
+        required = ['temperature', 'humidity',
+                    'precipitation', 'wind_speed', 'leaf_wetness']
         for f in required:
             if f not in data:
                 return jsonify({'error': f'Champ manquant: {f}'}), 400
@@ -246,7 +256,7 @@ def receive_climate():
             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             data['temperature'], data['humidity'], data['precipitation'],
             data['wind_speed'],  data.get('wind_direction'),
-            data['leaf_wetness'],data.get('pressure_hpa'),
+            data['leaf_wetness'], data.get('pressure_hpa'),
             data.get('soil_cb'), data.get('soil_resistance'),
             data.get('npk_n'),   data.get('npk_p'), data.get('npk_k')
         ))
@@ -261,6 +271,7 @@ def receive_climate():
         return jsonify({'error': str(e)}), 500
 
 # ==================== DÉTECTION SEULE (YOLO) ====================
+
 
 @app.route('/api/detect', methods=['POST'])
 def detect_only():
@@ -284,7 +295,7 @@ def detect_only():
         for r in results:
             if r.boxes:
                 for box in r.boxes:
-                    cid  = int(box.cls[0])
+                    cid = int(box.cls[0])
                     conf = float(box.conf[0])
                     disease = DISEASE_CLASSES.get(cid, 'Unknown')
                     rec = TREATMENT_RECOMMENDATIONS.get(disease, {})
@@ -301,13 +312,14 @@ def detect_only():
 
         if not detections:
             return jsonify({'status': 'no_detection',
-                          'message': 'Aucune détection sur cette photo'}), 200
+                            'message': 'Aucune détection sur cette photo'}), 200
 
         return jsonify({'status': 'success', 'detections': detections}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # ==================== FUSION YOLO + LSTM ====================
+
 
 @app.route('/api/predict', methods=['POST'])
 def predict_fusion():
@@ -347,6 +359,7 @@ def predict_fusion():
         return jsonify({'status': 'success', 'results': result}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 def run_fusion(image_path, climate_data_7days):
     """Logique de fusion YOLO + LSTM"""
@@ -445,6 +458,7 @@ def run_fusion(image_path, climate_data_7days):
         }
     }
 
+
 @app.route('/api/climate/history', methods=['GET'])
 def climate_history():
     rows = get_last_7_days()
@@ -459,9 +473,12 @@ def climate_history():
 
 # ==================== LANCEMENT ====================
 
+
+# Initialisation au chargement du module (fonctionne avec Gunicorn ET python app.py)
+print("\n🍅 TomatoGuard — Initialisation\n")
+init_db()
+load_models()
+
 if __name__ == '__main__':
-    print("\n🍅 TomatoGuard — Démarrage du serveur\n")
-    init_db()
-    load_models()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
