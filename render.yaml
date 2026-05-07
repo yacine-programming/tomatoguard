@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: tomatoguard
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --timeout 120 --workers 1 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: APP_MODE
+        value: test
+      - key: MODELS_DIR
+        value: ./models
+      - key: PYTHON_VERSION
+        value: 3.11.0
