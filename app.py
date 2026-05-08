@@ -1,25 +1,24 @@
 """
 TomatoGuard - Serveur Flask
 ============================
-Endpoints:
-  - POST /api/climate          → ESP32 envoie ses données
-  - POST /api/detect           → Détection YOLO seule
-  - POST /api/predict          → Fusion YOLO + LSTM
-  - GET  /api/status           → Statut + mode actuel
-  - POST /api/mode             → Basculer entre normal et test
-  - GET  /api/climate/history  → Historique 7 jours
+LSTM utilise 5 variables dans cet ordre EXACT :
+  [temperature, humidity, precipitation, wind_speed, leaf_wetness]
+
+Dashboard affiche TOUTES les mesures (température, humidité air,
+humidité sol, vent, pression, NPK, leaf wetness, etc.)
 
 Mode TEST: 2 minutes simulent 1 jour (7 jours = 14 min)
 Mode NORMAL: 1 jour réel = 1 jour
+Strict: 7 périodes obligatoires pour la fusion (refus si moins)
 """
 
-import threading
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import sqlite3
 import numpy as np
 import os
 import tempfile
+import threading
 from datetime import datetime, timedelta
 import joblib
 
@@ -28,17 +27,13 @@ CORS(app)
 
 # ==================== ÉTAT GLOBAL ====================
 
-# Mode actuel: 'normal' ou 'test'
-# - normal : 1 jour réel = 1 jour climat (groupement par DATE())
-# - test   : 2 minutes = 1 jour (groupement par fenêtres de 2 min)
 APP_MODE = os.environ.get('APP_MODE', 'test')
+REQUIRED_PERIODS = 7  # 7 périodes OBLIGATOIRES pour le LSTM
 
-# Modèles chargés en mémoire
 yolo_model = None
 lstm_model = None
 scaler = None
 
-# Liste des classes YOLO
 DISEASE_CLASSES = {
     0: 'Tomato_Bacterial_Spot',
     1: 'Tomato_Early_Blight',
@@ -54,7 +49,6 @@ DISEASE_CLASSES = {
 
 LSTM_SUPPORTED = ['Tomato_Early_Blight', 'Tomato_Spider_Mites']
 
-# Recommandations de traitement standard par maladie
 TREATMENT_RECOMMENDATIONS = {
     'Tomato_Bacterial_Spot': {
         'fr': "Appliquer un fongicide à base de cuivre. Éviter l'arrosage par aspersion. Retirer les feuilles infectées.",
@@ -98,13 +92,11 @@ TREATMENT_RECOMMENDATIONS = {
     }
 }
 
-# ==================== CHARGEMENT DES MODÈLES ====================
-
+# ==================== CHARGEMENT MODÈLES ====================
 
 def load_models():
     """Charge YOLO, LSTM et scaler une seule fois au démarrage"""
     global yolo_model, lstm_model, scaler
-
     import traceback
 
     models_dir = os.environ.get('MODELS_DIR', './models')
@@ -117,49 +109,41 @@ def load_models():
     files = os.listdir(models_dir)
     print(f"📋 Fichiers trouvés : {files}")
 
-    # YOLO
     try:
         from ultralytics import YOLO
         for f in files:
             if f.endswith('.pt'):
-                path = os.path.join(models_dir, f)
-                yolo_model = YOLO(path)
+                yolo_model = YOLO(os.path.join(models_dir, f))
                 print(f"✅ YOLO chargé: {f}")
                 break
     except Exception as e:
         print(f"❌ Erreur YOLO: {e}")
         traceback.print_exc()
 
-    # LSTM
     try:
         from tensorflow.keras.models import load_model
         for f in files:
             if f.endswith('.h5'):
-                path = os.path.join(models_dir, f)
-                lstm_model = load_model(path)
+                lstm_model = load_model(os.path.join(models_dir, f))
                 print(f"✅ LSTM chargé: {f}")
                 break
     except Exception as e:
         print(f"❌ Erreur LSTM: {e}")
         traceback.print_exc()
 
-    # Scaler
     try:
         for f in files:
             if f.endswith('.pkl'):
-                path = os.path.join(models_dir, f)
-                scaler = joblib.load(path)
+                scaler = joblib.load(os.path.join(models_dir, f))
                 print(f"✅ Scaler chargé: {f}")
                 break
     except Exception as e:
         print(f"❌ Erreur Scaler: {e}")
         traceback.print_exc()
 
-    print(
-        f"📊 État final : YOLO={yolo_model is not None} LSTM={lstm_model is not None} Scaler={scaler is not None}")
+    print(f"📊 État final : YOLO={yolo_model is not None} LSTM={lstm_model is not None} Scaler={scaler is not None}")
 
 # ==================== BASE DE DONNÉES ====================
-
 
 def init_db():
     conn = sqlite3.connect('climate.db')
@@ -168,8 +152,9 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT NOT NULL,
             temperature REAL, humidity REAL, precipitation REAL,
-            wind_speed REAL, wind_direction INTEGER, leaf_wetness REAL,
-            pressure_hpa REAL, soil_cb INTEGER, soil_resistance REAL,
+            wind_speed REAL, wind_direction INTEGER, wind_direction_label TEXT,
+            leaf_wetness REAL, pressure_hpa REAL,
+            soil_cb INTEGER, soil_resistance REAL,
             npk_n INTEGER, npk_p INTEGER, npk_k INTEGER
         )
     ''')
@@ -177,47 +162,49 @@ def init_db():
     conn.close()
     print("✅ Base de données prête")
 
-
-def get_last_7_days():
+def get_periods(limit=7):
     """
-    Récupère 7 'jours' de données selon le mode actuel.
-    - Mode normal : 7 derniers jours réels, groupés par date
-    - Mode test   : 14 dernières minutes, groupées par fenêtres de 2 min
+    Récupère les N dernières périodes selon le mode.
+    Mode test : fenêtres de 2 min
+    Mode normal : fenêtres journalières
+    Retourne: liste de tuples avec TOUTES les mesures
     """
     conn = sqlite3.connect('climate.db')
     c = conn.cursor()
 
     if APP_MODE == 'test':
-        # 14 minutes = 7 "jours" de 2 min
-        since = (datetime.now() - timedelta(minutes=14)
-                 ).strftime('%Y-%m-%d %H:%M:%S')
-        # Grouper par fenêtre de 2 minutes (timestamp tronqué)
+        # Fenêtres de 2 minutes (14 min total pour 7 périodes)
+        since = (datetime.now() - timedelta(minutes=limit * 2)).strftime('%Y-%m-%d %H:%M:%S')
         c.execute('''
             SELECT
                 strftime('%Y-%m-%d %H:', timestamp) ||
                   printf('%02d', (CAST(strftime('%M', timestamp) AS INTEGER) / 2) * 2) AS window,
                 AVG(temperature), AVG(humidity), AVG(precipitation),
-                AVG(wind_speed),  AVG(leaf_wetness)
+                AVG(wind_speed), AVG(wind_direction), AVG(leaf_wetness),
+                AVG(pressure_hpa), AVG(soil_cb), AVG(soil_resistance),
+                AVG(npk_n), AVG(npk_p), AVG(npk_k),
+                COUNT(*) as samples
             FROM climate
             WHERE timestamp >= ?
             GROUP BY window
             ORDER BY window DESC
-            LIMIT 7
-        ''', (since,))
+            LIMIT ?
+        ''', (since, limit))
     else:
-        # Mode normal : 7 derniers jours
-        since = (datetime.now() - timedelta(days=7)
-                 ).strftime('%Y-%m-%d %H:%M:%S')
+        since = (datetime.now() - timedelta(days=limit)).strftime('%Y-%m-%d %H:%M:%S')
         c.execute('''
             SELECT DATE(timestamp) AS day,
                 AVG(temperature), AVG(humidity), AVG(precipitation),
-                AVG(wind_speed),  AVG(leaf_wetness)
+                AVG(wind_speed), AVG(wind_direction), AVG(leaf_wetness),
+                AVG(pressure_hpa), AVG(soil_cb), AVG(soil_resistance),
+                AVG(npk_n), AVG(npk_p), AVG(npk_k),
+                COUNT(*) as samples
             FROM climate
             WHERE timestamp >= ?
             GROUP BY day
             ORDER BY day DESC
-            LIMIT 7
-        ''', (since,))
+            LIMIT ?
+        ''', (since, limit))
 
     rows = c.fetchall()
     conn.close()
@@ -225,16 +212,13 @@ def get_last_7_days():
 
 # ==================== ROUTES ====================
 
-
 @app.route('/')
 def home():
-    """Sert la page web mobile"""
     return send_from_directory('static', 'index.html')
-
 
 @app.route('/api/status', methods=['GET'])
 def status():
-    rows = get_last_7_days()
+    rows = get_periods(REQUIRED_PERIODS)
     return jsonify({
         'status': 'online',
         'mode': APP_MODE,
@@ -244,33 +228,28 @@ def status():
             'lstm':   lstm_model is not None,
             'scaler': scaler is not None
         },
-        'climate_days_available': len(rows),
-        'minimum_days_required': 3
+        'periods_available': len(rows),
+        'periods_required': REQUIRED_PERIODS,
+        'ready_for_fusion': len(rows) >= REQUIRED_PERIODS
     }), 200
-
 
 @app.route('/api/mode', methods=['POST'])
 def switch_mode():
-    """Bascule entre 'normal' et 'test'"""
     global APP_MODE
     data = request.get_json()
     new_mode = data.get('mode', '').lower()
-
     if new_mode not in ['normal', 'test']:
         return jsonify({'error': "mode doit être 'normal' ou 'test'"}), 400
-
     APP_MODE = new_mode
     print(f"🔄 Mode changé: {APP_MODE}")
     return jsonify({'status': 'ok', 'mode': APP_MODE}), 200
 
-
 @app.route('/api/climate', methods=['POST'])
 def receive_climate():
-    """Reçoit les données capteurs de l'ESP32"""
+    """Reçoit les données capteurs de l'ESP32 (toutes les 2 min en mode test)"""
     try:
         data = request.get_json()
-        required = ['temperature', 'humidity',
-                    'precipitation', 'wind_speed', 'leaf_wetness']
+        required = ['temperature', 'humidity', 'precipitation', 'wind_speed', 'leaf_wetness']
         for f in required:
             if f not in data:
                 return jsonify({'error': f'Champ manquant: {f}'}), 400
@@ -278,36 +257,84 @@ def receive_climate():
         conn = sqlite3.connect('climate.db')
         conn.execute('''
             INSERT INTO climate (timestamp, temperature, humidity, precipitation,
-                wind_speed, wind_direction, leaf_wetness, pressure_hpa,
-                soil_cb, soil_resistance, npk_n, npk_p, npk_k)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                wind_speed, wind_direction, wind_direction_label, leaf_wetness,
+                pressure_hpa, soil_cb, soil_resistance, npk_n, npk_p, npk_k)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         ''', (
             datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             data['temperature'], data['humidity'], data['precipitation'],
-            data['wind_speed'],  data.get('wind_direction'),
+            data['wind_speed'], data.get('wind_direction'), data.get('wind_direction_label'),
             data['leaf_wetness'], data.get('pressure_hpa'),
             data.get('soil_cb'), data.get('soil_resistance'),
-            data.get('npk_n'),   data.get('npk_p'), data.get('npk_k')
+            data.get('npk_n'), data.get('npk_p'), data.get('npk_k')
         ))
         conn.commit()
         conn.close()
 
         print(f"📡 ESP32 → T={data['temperature']}°C "
-              f"H={data['humidity']}% P={data['precipitation']}mm "
-              f"[{APP_MODE}]")
+              f"H={data['humidity']}% P={data['precipitation']}mm [{APP_MODE}]")
         return jsonify({'status': 'ok', 'mode': APP_MODE}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ==================== DASHBOARD ====================
+
+@app.route('/api/dashboard', methods=['GET'])
+def dashboard():
+    """
+    Retourne TOUTES les mesures des dernières périodes pour affichage.
+    Inclut température, humidité air, humidité sol, vent, pluie,
+    leaf wetness, pression, NPK.
+    """
+    try:
+        rows = get_periods(REQUIRED_PERIODS)
+        keys = ['period', 'temperature', 'humidity', 'precipitation',
+                'wind_speed', 'wind_direction', 'leaf_wetness',
+                'pressure_hpa', 'soil_cb', 'soil_resistance',
+                'npk_n', 'npk_p', 'npk_k', 'samples']
+
+        history = []
+        for r in rows:
+            entry = {}
+            for k, v in zip(keys, r):
+                if v is None:
+                    entry[k] = None
+                elif isinstance(v, float):
+                    entry[k] = round(v, 2)
+                else:
+                    entry[k] = v
+            history.append(entry)
+
+        # Récupérer aussi la dernière mesure brute (last reading)
+        conn = sqlite3.connect('climate.db')
+        c = conn.cursor()
+        c.execute('SELECT * FROM climate ORDER BY id DESC LIMIT 1')
+        last_row = c.fetchone()
+        conn.close()
+
+        last = None
+        if last_row:
+            cols = ['id', 'timestamp', 'temperature', 'humidity', 'precipitation',
+                    'wind_speed', 'wind_direction', 'wind_direction_label',
+                    'leaf_wetness', 'pressure_hpa', 'soil_cb', 'soil_resistance',
+                    'npk_n', 'npk_p', 'npk_k']
+            last = dict(zip(cols, last_row))
+
+        return jsonify({
+            'periods': history,
+            'count': len(history),
+            'required': REQUIRED_PERIODS,
+            'mode': APP_MODE,
+            'last_reading': last
+        }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 # ==================== DÉTECTION SEULE (YOLO) ====================
 
-
 @app.route('/api/detect', methods=['POST'])
 def detect_only():
-    """
-    Détection YOLO seule, sans données climatiques.
-    Retourne maladie + confiance + recommandation de traitement standard.
-    """
+    """Détection YOLO seule - sans climat"""
     try:
         if 'image' not in request.files:
             return jsonify({'error': 'Aucune image reçue'}), 400
@@ -341,36 +368,54 @@ def detect_only():
 
         if not detections:
             return jsonify({'status': 'no_detection',
-                            'message': 'Aucune détection sur cette photo'}), 200
+                          'message': 'Aucune détection sur cette photo'}), 200
 
         return jsonify({'status': 'success', 'detections': detections}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ==================== FUSION YOLO + LSTM ====================
-
+# ==================== FUSION YOLO + LSTM (STRICT 7 PÉRIODES) ====================
 
 @app.route('/api/predict', methods=['POST'])
 def predict_fusion():
-    """Prédiction complète : fusion YOLO (image) + LSTM (climat 7 jours)"""
+    """
+    Fusion YOLO + LSTM.
+    STRICT : exige 7 périodes complètes, refuse sinon.
+    LSTM utilise [temperature, humidity, precipitation, wind_speed, leaf_wetness]
+    """
     try:
         if 'image' not in request.files:
             return jsonify({'error': 'Aucune image reçue'}), 400
         if not all([yolo_model, lstm_model, scaler]):
             return jsonify({'error': 'Tous les modèles ne sont pas chargés'}), 500
 
-        rows = get_last_7_days()
-        if len(rows) < 3:
+        rows = get_periods(REQUIRED_PERIODS)
+
+        # STRICT : refus si pas exactement 7 périodes
+        if len(rows) < REQUIRED_PERIODS:
             return jsonify({
                 'error': 'Pas assez de données climatiques',
-                'detail': f'Seulement {len(rows)} période(s) disponible(s). Minimum 3 requis.',
+                'detail': f'Il faut {REQUIRED_PERIODS} périodes complètes. Actuellement : {len(rows)}/{REQUIRED_PERIODS}.',
+                'periods_available': len(rows),
+                'periods_required': REQUIRED_PERIODS,
                 'mode': APP_MODE
             }), 400
 
-        climate_data = [[r[1], r[2], r[3], r[4], r[5]] for r in rows]
-        while len(climate_data) < 7:
-            climate_data.insert(0, climate_data[0])
-        climate_data = climate_data[:7]
+        # Construire les 5 variables LSTM dans l'ordre EXACT
+        # rows[i] = (period, temp, humidity, precip, wind, wind_dir, leaf_wetness, ...)
+        # Index 1=temp, 2=humidity, 3=precip, 4=wind_speed, 6=leaf_wetness
+        climate_data = []
+        for r in rows:
+            climate_data.append([
+                r[1] or 0,  # temperature
+                r[2] or 0,  # humidity
+                r[3] or 0,  # precipitation
+                r[4] or 0,  # wind_speed
+                r[6] or 0   # leaf_wetness  ⚠️ index 6 (pas 5 qui est wind_direction)
+            ])
+
+        # rows arrive du plus récent au plus ancien -> renverser pour avoir ordre chronologique
+        climate_data.reverse()
 
         image_file = request.files['image']
         with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp:
@@ -383,15 +428,19 @@ def predict_fusion():
         if result is None:
             return jsonify({'status': 'no_detection'}), 200
 
-        result['climate_periods'] = len(rows)
+        result['periods_used'] = len(rows)
         result['mode'] = APP_MODE
         return jsonify({'status': 'success', 'results': result}), 200
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
-
-def run_fusion(image_path, climate_data_7days):
-    """Logique de fusion YOLO + LSTM"""
+def run_fusion(image_path, climate_data_7):
+    """
+    Fusion YOLO + LSTM.
+    climate_data_7 : exactement 7 lignes de [temp, humidity, precip, wind, leaf_wetness]
+    """
     yolo_results = yolo_model(image_path, verbose=False)
     detections = []
     for r in yolo_results:
@@ -406,7 +455,7 @@ def run_fusion(image_path, climate_data_7days):
     if not detections:
         return None
 
-    arr = np.array(climate_data_7days)
+    arr = np.array(climate_data_7)  # shape (7, 5)
     arr_n = scaler.transform(arr.reshape(-1, arr.shape[-1])) \
                   .reshape(1, arr.shape[0], arr.shape[-1])
     pred = lstm_model.predict(arr_n, verbose=0)
@@ -487,31 +536,15 @@ def run_fusion(image_path, climate_data_7days):
         }
     }
 
-
-@app.route('/api/climate/history', methods=['GET'])
-def climate_history():
-    rows = get_last_7_days()
-    keys = ['period', 'temperature', 'humidity', 'precipitation',
-            'wind_speed', 'leaf_wetness']
-    history = [
-        {k: (round(v, 2) if isinstance(v, float) else v)
-         for k, v in zip(keys, r)}
-        for r in rows
-    ]
-    return jsonify({'days': history, 'count': len(history), 'mode': APP_MODE}), 200
-
 # ==================== LANCEMENT ====================
 
-
 def background_init():
-    """Initialisation lourde en arrière-plan pour ne pas bloquer le démarrage"""
+    """Initialisation lourde en arrière-plan pour ne pas bloquer Gunicorn"""
     print("\n🍅 TomatoGuard — Initialisation en arrière-plan\n")
     init_db()
     load_models()
-    print("\n✅ Initialisation terminée — serveur prêt\n")
+    print("\n✅ Initialisation terminée\n")
 
-
-# Lance l'initialisation dans un thread séparé
 threading.Thread(target=background_init, daemon=True).start()
 
 if __name__ == '__main__':
