@@ -16,18 +16,15 @@
     --border: #e8e0d5; --shadow: 0 4px 24px rgba(0,0,0,0.08);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text);
-    min-height: 100vh; max-width: 480px; margin: 0 auto; padding-bottom: 80px;
-  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
 
   header { background: var(--red); padding: 20px 24px 16px; position: relative; overflow: hidden; }
   header::before { content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px; background: rgba(255,255,255,0.07); border-radius: 50%; }
   .logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: white; }
   .logo span { color: rgba(255,255,255,0.6); }
   .subtitle { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; letter-spacing: 0.8px; text-transform: uppercase; }
+  .header-time { color: rgba(255,255,255,0.85); font-size: 12px; margin-top: 4px; font-weight: 500; }
 
-  /* STATUS BAR */
   .status-bar { background: white; margin: 16px; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow); border: 1px solid var(--border); }
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
   .status-dot.online { background: var(--green-light); animation: pulse 2s infinite; }
@@ -36,19 +33,13 @@
   .status-text { font-size: 13px; color: var(--muted); flex: 1; }
   .status-text strong { color: var(--text); }
 
-  /* PROGRESSION BADGE */
-  .progress-badge {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
-    padding: 4px 12px; font-size: 11px; font-weight: 600; color: var(--muted);
-    display: flex; align-items: center; gap: 6px;
-  }
+  .progress-badge { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
   .progress-badge.ready { background: #d5f5e3; border-color: #a9dfbf; color: var(--green); }
   .progress-badge.partial { background: #fef9e7; border-color: #f9e79f; color: #7d6608; }
   .mini-bar { width: 28px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
   .mini-bar-fill { height: 100%; background: var(--green-light); border-radius: 2px; transition: width 0.6s; }
   .progress-badge.partial .mini-bar-fill { background: var(--yellow); }
 
-  /* MODE SWITCH */
   .mode-switch { margin: 0 16px 16px; background: white; border-radius: 14px; padding: 12px 16px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .mode-info { flex: 1; }
   .mode-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 2px; }
@@ -60,7 +51,6 @@
   .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
   .toggle.test::after { transform: translateX(22px); }
 
-  /* TABS */
   .tabs { display: flex; gap: 6px; margin: 0 16px 16px; background: white; border-radius: 14px; padding: 6px; box-shadow: var(--shadow); border: 1px solid var(--border); }
   .tab { flex: 1; text-align: center; padding: 10px 4px; border-radius: 10px; font-size: 11px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all 0.2s; }
   .tab.active { background: var(--red); color: white; box-shadow: 0 2px 8px rgba(192,57,43,0.3); }
@@ -68,7 +58,6 @@
 
   main { padding: 0 16px 40px; }
 
-  /* SERVER URL */
   .server-section { background: white; border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; border: 1px solid var(--border); }
   .server-label { font-size: 10px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.8px; }
   .server-input { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.2s; }
@@ -76,7 +65,6 @@
 
   .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 500; margin-bottom: 10px; padding-left: 2px; }
 
-  /* PHOTO BUTTONS */
   .photo-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
   .photo-btn { background: white; border: 2px solid var(--border); border-radius: 14px; padding: 18px 12px; cursor: pointer; transition: all 0.2s; text-align: center; }
   .photo-btn:hover, .photo-btn:active { border-color: var(--red); background: #fff5f5; transform: translateY(-1px); }
@@ -90,21 +78,20 @@
   .preview-text { color: white; font-size: 12px; font-weight: 500; }
   .preview-change { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 12px; border-radius: 16px; font-size: 11px; cursor: pointer; }
 
-  /* BUTTONS */
   .btn-primary { width: 100%; background: var(--red); color: white; border: none; border-radius: 14px; padding: 16px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px; }
   .btn-primary:hover { background: var(--red-dark); }
   .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
   .btn-primary.fusion { background: linear-gradient(135deg, var(--red), var(--orange)); }
-  .btn-refresh { background: white; color: var(--text); border: 1.5px solid var(--border); }
-  .btn-refresh:hover { background: var(--bg); }
+  .btn-primary.refresh { background: white; color: var(--text); border: 1.5px solid var(--border); }
+  .btn-primary.refresh:hover { background: var(--bg); }
+  .btn-primary.danger { background: #fff; color: var(--red); border: 1.5px solid #f1948a; }
+  .btn-primary.danger:hover { background: #fdedec; }
 
-  /* LOADING */
   .loading-card { background: white; border-radius: 16px; padding: 24px 20px; text-align: center; box-shadow: var(--shadow); display: none; margin-bottom: 16px; }
   .spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-text { font-size: 14px; color: var(--muted); }
 
-  /* RESULT CARDS */
   .result-card { border-radius: 16px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow); display: none; animation: slideUp 0.4s ease; }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   .result-card.critical { background: linear-gradient(135deg, #fdedec, #fef9f9); border: 1.5px solid #f1948a; }
@@ -122,14 +109,12 @@
   .standard .result-icon { background: #d6eaf8; }
   .safe .result-icon { background: #d5f5e3; }
   .detected .result-icon { background: var(--bg); }
-
   .result-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; line-height: 1.3; }
   .critical .result-title { color: var(--red-dark); }
   .moderate .result-title { color: #7d6608; }
   .potential_risk .result-title { color: var(--orange); }
   .standard .result-title { color: #1a5276; }
   .safe .result-title { color: var(--green); }
-
   .result-confidence { font-size: 11px; color: var(--muted); font-weight: 500; }
   .result-message { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 10px; }
 
@@ -149,7 +134,6 @@
   .standard .action-badge { background: var(--blue); color: white; }
   .safe .action-badge { background: var(--green); color: white; }
 
-  /* CLIMATE SUMMARY */
   .climate-card { background: white; border-radius: 16px; padding: 16px; box-shadow: var(--shadow); display: none; margin-bottom: 12px; }
   .climate-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; font-weight: 500; }
   .climate-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
@@ -167,54 +151,50 @@
   .info-banner strong { display: block; margin-bottom: 2px; }
   .info-banner.warning { background: #fef9e7; border-color: #f9e79f; color: #7d6608; }
 
-  /* DASHBOARD */
-  .dashboard-progress {
-    background: white; border-radius: 16px; padding: 16px; box-shadow: var(--shadow);
-    margin-bottom: 14px; border: 1px solid var(--border);
-  }
+  /* Dashboard */
+  .dashboard-progress { background: white; border-radius: 16px; padding: 16px; box-shadow: var(--shadow); margin-bottom: 14px; border: 1px solid var(--border); }
   .dashboard-progress.complete { border-color: #a9dfbf; background: linear-gradient(135deg, #f8fffe, #eafaf1); }
-  .dashboard-progress-header {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
-  }
+  .dashboard-progress-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   .dashboard-progress-title { font-size: 13px; font-weight: 600; color: var(--text); }
   .dashboard-progress-count { font-size: 18px; font-weight: 700; color: var(--red); }
   .complete .dashboard-progress-count { color: var(--green); }
   .dashboard-progress-bar { width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
   .dashboard-progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), var(--red)); transition: width 0.6s ease; }
   .complete .dashboard-progress-fill { background: var(--green-light); }
+  .dashboard-progress-meta { font-size: 11px; color: var(--muted); margin-top: 8px; }
 
-  /* LAST READING (current sensors) */
-  .current-reading {
-    background: white; border-radius: 16px; padding: 16px; box-shadow: var(--shadow);
-    margin-bottom: 14px;
-  }
-  .current-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; font-weight: 600; }
+  .current-reading { background: white; border-radius: 16px; padding: 16px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .current-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .current-title small { font-weight: 500; color: var(--muted); text-transform: none; letter-spacing: 0; }
   .current-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .current-cell {
-    background: var(--bg); border-radius: 10px; padding: 10px 12px;
-    border: 1px solid var(--border);
-  }
+  .current-cell { background: var(--bg); border-radius: 10px; padding: 10px 12px; border: 1px solid var(--border); }
   .current-cell-icon { font-size: 16px; margin-bottom: 4px; }
   .current-cell-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
   .current-cell-value { font-size: 16px; font-weight: 700; color: var(--text); margin-top: 2px; }
   .current-cell-unit { font-size: 11px; color: var(--muted); font-weight: 500; }
 
-  /* TABLE */
   .table-card { background: white; border-radius: 16px; padding: 14px; box-shadow: var(--shadow); margin-bottom: 14px; overflow-x: auto; }
-  .table-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; font-weight: 600; padding: 0 4px; }
+  .table-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; font-weight: 600; padding: 0 4px; display: flex; justify-content: space-between; align-items: center; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  thead th {
-    background: var(--bg); padding: 8px 6px; text-align: left;
-    font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px;
-    color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
+  thead th { background: var(--bg); padding: 8px 6px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); white-space: nowrap; }
   tbody td { padding: 8px 6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover { background: var(--bg); }
+  tbody tr.fusion-window { background: #fef9e7; }
   .col-period { font-weight: 600; color: var(--red); }
+  .col-date { color: var(--muted); font-size: 10px; }
   .empty-state { text-align: center; padding: 30px 16px; color: var(--muted); font-size: 13px; }
   .empty-state-icon { font-size: 36px; margin-bottom: 8px; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: white; border-radius: 16px; padding: 24px; max-width: 360px; width: 100%; }
+  .modal-icon { font-size: 48px; text-align: center; margin-bottom: 12px; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+  .modal-text { font-size: 13px; color: #555; line-height: 1.5; text-align: center; margin-bottom: 20px; }
+  .modal-buttons { display: flex; gap: 10px; }
+  .modal-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .modal-btn.cancel { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+  .modal-btn.confirm { background: var(--red); color: white; }
 
   #fileInput { display: none; }
 </style>
@@ -224,6 +204,7 @@
 <header>
   <div class="logo">Tomato<span>Guard</span></div>
   <div class="subtitle">Détection intelligente des maladies</div>
+  <div class="header-time" id="headerTime">—</div>
 </header>
 
 <div class="status-bar">
@@ -265,44 +246,23 @@
     <input type="text" class="server-input" id="serverUrl" value="" placeholder="Auto-détecté" />
   </div>
 
-  <!-- TAB: DÉTECTION SEULE -->
+  <!-- TAB: DÉTECTION -->
   <div id="paneDetect">
     <div class="info-banner">
       <strong>📸 Détection visuelle</strong>
       Analyse uniquement la photo avec YOLO. Donne la maladie et un traitement standard.
     </div>
-
     <div class="section-label">Photo de la feuille</div>
     <div class="photo-buttons">
-      <div class="photo-btn" onclick="pickPhoto('camera')">
-        <div class="photo-btn-icon">📷</div>
-        <div class="photo-btn-text">Caméra</div>
-        <div class="photo-btn-hint">Prendre une photo</div>
-      </div>
-      <div class="photo-btn" onclick="pickPhoto('gallery')">
-        <div class="photo-btn-icon">🖼️</div>
-        <div class="photo-btn-text">Galerie</div>
-        <div class="photo-btn-hint">Importer un fichier</div>
-      </div>
+      <div class="photo-btn" onclick="pickPhoto('camera')"><div class="photo-btn-icon">📷</div><div class="photo-btn-text">Caméra</div><div class="photo-btn-hint">Prendre une photo</div></div>
+      <div class="photo-btn" onclick="pickPhoto('gallery')"><div class="photo-btn-icon">🖼️</div><div class="photo-btn-text">Galerie</div><div class="photo-btn-hint">Importer un fichier</div></div>
     </div>
-
     <div class="preview-section" id="previewSection">
       <img id="previewImg" alt="Aperçu" />
-      <div class="preview-overlay">
-        <span class="preview-text">Photo prête</span>
-        <button class="preview-change" onclick="resetPhoto()">Changer</button>
-      </div>
+      <div class="preview-overlay"><span class="preview-text">Photo prête</span><button class="preview-change" onclick="resetPhoto()">Changer</button></div>
     </div>
-
-    <button class="btn-primary" id="detectBtn" onclick="runDetect()" disabled>
-      <span>🔍</span> Détecter la maladie
-    </button>
-
-    <div class="loading-card" id="loadingDetect">
-      <div class="spinner"></div>
-      <div class="loading-text">Analyse de l'image...</div>
-    </div>
-
+    <button class="btn-primary" id="detectBtn" onclick="runDetect()" disabled><span>🔍</span> Détecter la maladie</button>
+    <div class="loading-card" id="loadingDetect"><div class="spinner"></div><div class="loading-text">Analyse de l'image...</div></div>
     <div class="error-card" id="errorDetect"></div>
     <div id="resultsDetect"></div>
   </div>
@@ -311,43 +271,21 @@
   <div id="paneFusion" style="display:none">
     <div class="info-banner" id="fusionBanner">
       <strong>🌡️ Fusion intelligente</strong>
-      Combine la photo (YOLO) et 7 périodes climatiques (LSTM). 7 périodes obligatoires.
+      Combine la photo (YOLO) et 7 périodes climatiques (LSTM).
     </div>
-
     <div class="section-label">Photo de la feuille</div>
     <div class="photo-buttons">
-      <div class="photo-btn" onclick="pickPhoto('camera')">
-        <div class="photo-btn-icon">📷</div>
-        <div class="photo-btn-text">Caméra</div>
-        <div class="photo-btn-hint">Prendre une photo</div>
-      </div>
-      <div class="photo-btn" onclick="pickPhoto('gallery')">
-        <div class="photo-btn-icon">🖼️</div>
-        <div class="photo-btn-text">Galerie</div>
-        <div class="photo-btn-hint">Importer un fichier</div>
-      </div>
+      <div class="photo-btn" onclick="pickPhoto('camera')"><div class="photo-btn-icon">📷</div><div class="photo-btn-text">Caméra</div><div class="photo-btn-hint">Prendre une photo</div></div>
+      <div class="photo-btn" onclick="pickPhoto('gallery')"><div class="photo-btn-icon">🖼️</div><div class="photo-btn-text">Galerie</div><div class="photo-btn-hint">Importer un fichier</div></div>
     </div>
-
     <div class="preview-section" id="previewSection2">
       <img id="previewImg2" alt="Aperçu" />
-      <div class="preview-overlay">
-        <span class="preview-text">Photo prête</span>
-        <button class="preview-change" onclick="resetPhoto()">Changer</button>
-      </div>
+      <div class="preview-overlay"><span class="preview-text">Photo prête</span><button class="preview-change" onclick="resetPhoto()">Changer</button></div>
     </div>
-
-    <button class="btn-primary fusion" id="fusionBtn" onclick="runFusion()" disabled>
-      <span>🧠</span> Analyse complète
-    </button>
-
-    <div class="loading-card" id="loadingFusion">
-      <div class="spinner"></div>
-      <div class="loading-text">Fusion YOLO + LSTM...</div>
-    </div>
-
+    <button class="btn-primary fusion" id="fusionBtn" onclick="runFusion()" disabled><span>🧠</span> Analyse complète</button>
+    <div class="loading-card" id="loadingFusion"><div class="spinner"></div><div class="loading-text">Fusion YOLO + LSTM...</div></div>
     <div class="error-card" id="errorFusion"></div>
     <div id="resultsFusion"></div>
-
     <div class="climate-card" id="climateCard">
       <div class="climate-title">Risques climatiques</div>
       <div class="climate-row">
@@ -367,44 +305,58 @@
   <div id="paneDashboard" style="display:none">
     <div class="info-banner">
       <strong>📊 Données capteurs</strong>
-      Visualise toutes les mesures de la station ESP32 (température, humidité air & sol, vent, pluie, NPK, pression).
+      Toutes les mesures de la station ESP32. Les 7 dernières périodes (en jaune) sont utilisées pour la fusion.
     </div>
 
-    <!-- Progress Card -->
     <div class="dashboard-progress" id="dashProgress">
       <div class="dashboard-progress-header">
         <div class="dashboard-progress-title">Périodes collectées</div>
         <div class="dashboard-progress-count" id="dashProgressCount">0/7</div>
       </div>
-      <div class="dashboard-progress-bar">
-        <div class="dashboard-progress-fill" id="dashProgressFill" style="width:0%"></div>
-      </div>
+      <div class="dashboard-progress-bar"><div class="dashboard-progress-fill" id="dashProgressFill" style="width:0%"></div></div>
+      <div class="dashboard-progress-meta" id="dashMeta">Conservation : 50 dernières périodes</div>
     </div>
 
-    <!-- Last Reading Card -->
     <div class="current-reading" id="currentReading" style="display:none">
-      <div class="current-title">Dernière mesure ESP32</div>
+      <div class="current-title">
+        <span>Dernière mesure ESP32</span>
+        <small id="lastReadingTime">—</small>
+      </div>
       <div class="current-grid" id="currentGrid"></div>
     </div>
 
-    <!-- Periods Table -->
     <div class="table-card">
-      <div class="table-title">Historique périodes (LSTM utilise les 5 premières colonnes)</div>
+      <div class="table-title">
+        <span>Historique périodes</span>
+        <small id="tableMeta" style="text-transform:none;letter-spacing:0">Tri du plus récent</small>
+      </div>
       <div id="tableContainer">
-        <div class="empty-state">
-          <div class="empty-state-icon">📡</div>
-          En attente de données ESP32...
-        </div>
+        <div class="empty-state"><div class="empty-state-icon">📡</div>En attente de données ESP32...</div>
       </div>
     </div>
 
-    <button class="btn-primary btn-refresh" onclick="loadDashboard()">
-      <span>🔄</span> Rafraîchir
-    </button>
+    <button class="btn-primary refresh" onclick="loadDashboard()"><span>🔄</span> Rafraîchir</button>
+    <button class="btn-primary danger" onclick="showResetModal()"><span>🗑️</span> Réinitialiser les données</button>
   </div>
 
   <input type="file" id="fileInput" accept="image/*" />
 </main>
+
+<!-- Modal de confirmation reset -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title">Réinitialiser ?</div>
+    <div class="modal-text">
+      Toutes les données capteurs seront <strong>définitivement supprimées</strong>. Le compteur repassera à 0/7.
+      <br><br>Cette action est irréversible.
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn cancel" onclick="hideResetModal()">Annuler</button>
+      <button class="modal-btn confirm" onclick="confirmReset()">Tout effacer</button>
+    </div>
+  </div>
+</div>
 
 <script>
 let currentMode = 'normal';
@@ -412,7 +364,6 @@ let currentTab = 'detect';
 let selectedFile = null;
 let serverStatus = { ready: false, periods: 0, required: 7 };
 
-// ============ AUTO-DÉTECTION URL ============
 document.getElementById('serverUrl').value = window.location.origin;
 
 function getServerUrl() {
@@ -420,7 +371,6 @@ function getServerUrl() {
   return userUrl || window.location.origin;
 }
 
-// ============ TABS ============
 function switchTab(tab) {
   currentTab = tab;
   ['detect', 'fusion', 'dashboard'].forEach(t => {
@@ -430,7 +380,6 @@ function switchTab(tab) {
   if (tab === 'dashboard') loadDashboard();
 }
 
-// ============ PHOTO ============
 function pickPhoto(source) {
   const input = document.getElementById('fileInput');
   if (source === 'camera') input.setAttribute('capture', 'environment');
@@ -472,7 +421,6 @@ function updateFusionButton() {
   btn.disabled = !serverStatus.ready;
 }
 
-// ============ STATUS ============
 async function checkStatus() {
   const url = getServerUrl();
   const dot = document.getElementById('statusDot');
@@ -482,6 +430,7 @@ async function checkStatus() {
   const miniBarFill = document.getElementById('miniBarFill');
   const modeValue = document.getElementById('modeValue');
   const toggle = document.getElementById('modeToggle');
+  const headerTime = document.getElementById('headerTime');
 
   try {
     const res = await fetch(`${url}/api/status`, { signal: AbortSignal.timeout(8000) });
@@ -489,6 +438,7 @@ async function checkStatus() {
     dot.className = 'status-dot online';
     const yoloOk = data.models_loaded.yolo, lstmOk = data.models_loaded.lstm;
     text.innerHTML = `<strong>Connecté</strong> · YOLO ${yoloOk?'✅':'❌'} LSTM ${lstmOk?'✅':'❌'}`;
+    if (data.server_time_algeria) headerTime.textContent = '🇩🇿 ' + data.server_time_algeria;
 
     serverStatus.ready = data.ready_for_fusion;
     serverStatus.periods = data.periods_available;
@@ -501,9 +451,10 @@ async function checkStatus() {
     badge.classList.add(data.ready_for_fusion ? 'ready' : 'partial');
 
     currentMode = data.mode;
+    const desc = data.mode === 'test' ? '20s = 1j' : 'temps réel';
     modeValue.innerHTML = data.mode === 'test'
-      ? `Test rapide <span class="badge-test">2min = 1j</span>`
-      : `Normal <span class="badge-normal">temps réel</span>`;
+      ? `Test rapide <span class="badge-test">${desc}</span>`
+      : `Normal <span class="badge-normal">${desc}</span>`;
     toggle.classList.toggle('test', data.mode === 'test');
 
     updateFusionButton();
@@ -521,12 +472,12 @@ function updateFusionBanner() {
   if (serverStatus.ready) {
     banner.className = 'info-banner';
     banner.innerHTML = `<strong>🌡️ Fusion intelligente</strong>
-      Combine la photo (YOLO) et ${serverStatus.required} périodes climatiques (LSTM). Prêt !`;
+      Photo + ${serverStatus.required} dernières périodes climatiques. Prêt !`;
   } else {
     banner.className = 'info-banner warning';
-    banner.innerHTML = `<strong>⏳ En attente de données</strong>
+    banner.innerHTML = `<strong>⏳ En attente</strong>
       ${serverStatus.periods}/${serverStatus.required} périodes collectées.
-      Encore ${serverStatus.required - serverStatus.periods} période(s) avant de pouvoir fusionner.`;
+      Encore ${serverStatus.required - serverStatus.periods} avant fusion possible.`;
   }
 }
 
@@ -545,10 +496,9 @@ async function toggleMode() {
 }
 
 checkStatus();
-setInterval(checkStatus, 15000);
+setInterval(checkStatus, 10000);
 document.getElementById('serverUrl').addEventListener('change', checkStatus);
 
-// ============ DÉTECTION SEULE ============
 async function runDetect() {
   if (!selectedFile) return;
   document.getElementById('loadingDetect').style.display = 'block';
@@ -581,10 +531,7 @@ async function runDetect() {
             <div class="result-confidence">Confiance : ${det.confidence}% <span class="severity-tag ${sevClass}">${det.severity}</span></div>
           </div>
         </div>
-        <div class="treatment-box">
-          <strong>Traitement recommandé</strong>
-          ${det.treatment}
-        </div>`;
+        <div class="treatment-box"><strong>Traitement recommandé</strong>${det.treatment}</div>`;
       container.appendChild(card);
     });
   } catch {
@@ -595,14 +542,12 @@ async function runDetect() {
   }
 }
 
-// ============ FUSION ============
 async function runFusion() {
   if (!selectedFile) return;
   if (!serverStatus.ready) {
     showError('errorFusion', `Il faut ${serverStatus.required} périodes complètes. Actuellement : ${serverStatus.periods}/${serverStatus.required}.`, true);
     return;
   }
-
   document.getElementById('loadingFusion').style.display = 'block';
   document.getElementById('errorFusion').style.display = 'none';
   document.getElementById('resultsFusion').innerHTML = '';
@@ -618,8 +563,7 @@ async function runFusion() {
 
     if (!res.ok) {
       const msg = data.detail ? `${data.error} — ${data.detail}` : (data.error || 'Erreur');
-      showError('errorFusion', msg, true);
-      return;
+      showError('errorFusion', msg, true); return;
     }
     if (data.status === 'no_detection') { showError('errorFusion', 'Aucune détection'); return; }
 
@@ -631,22 +575,14 @@ async function runFusion() {
       card.style.display = 'block';
       card.style.animationDelay = `${i * 0.1}s`;
       const conf = det.confidence ? `· Confiance : ${det.confidence}%` : '';
-      const treatmentHtml = det.treatment ? `
-        <div class="treatment-box">
-          <strong>Traitement recommandé</strong>
-          ${det.treatment}
-        </div>` : '';
+      const treatmentHtml = det.treatment ? `<div class="treatment-box"><strong>Traitement recommandé</strong>${det.treatment}</div>` : '';
       card.innerHTML = `
         <div class="result-header">
           <div class="result-icon">${ICONS[det.type] || '🍅'}</div>
-          <div style="flex:1">
-            <div class="result-title">${det.disease}</div>
-            <div class="result-confidence">${conf}</div>
-          </div>
+          <div style="flex:1"><div class="result-title">${det.disease}</div><div class="result-confidence">${conf}</div></div>
         </div>
         <div class="result-message">${det.message}</div>
-        <span class="action-badge">${det.action}</span>
-        ${treatmentHtml}`;
+        <span class="action-badge">${det.action}</span>${treatmentHtml}`;
       container.appendChild(card);
     });
 
@@ -677,55 +613,80 @@ function showError(id, msg, warning) {
 }
 
 // ============ DASHBOARD ============
+function fmtTime(ts) {
+  if (!ts) return '—';
+  // ts format: "2026-05-09 14:23:45"
+  const parts = ts.split(' ');
+  if (parts.length !== 2) return ts;
+  return parts[1].substring(0, 5);  // HH:MM
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const parts = ts.split(' ');
+  if (parts.length !== 2) return ts;
+  // "2026-05-09" -> "09/05"
+  const dateParts = parts[0].split('-');
+  return `${dateParts[2]}/${dateParts[1]}`;
+}
+
 async function loadDashboard() {
   const url = getServerUrl();
   try {
     const res = await fetch(`${url}/api/dashboard`);
     const data = await res.json();
 
-    // Progress
     const count = data.count, req = data.required;
     document.getElementById('dashProgressCount').textContent = `${count}/${req}`;
     document.getElementById('dashProgressFill').style.width = Math.min(100, (count / req) * 100) + '%';
     document.getElementById('dashProgress').classList.toggle('complete', count >= req);
 
-    // Last reading (current sensors)
+    const meta = document.getElementById('dashMeta');
+    if (count >= data.max_kept) {
+      meta.textContent = `Maximum atteint : ${count}/${data.max_kept} (rotation des plus anciennes)`;
+    } else {
+      meta.textContent = `Conservation : ${count}/${data.max_kept} maximum`;
+    }
+
     if (data.last_reading) {
       const r = data.last_reading;
-      const grid = document.getElementById('currentGrid');
-      grid.innerHTML = `
+      document.getElementById('lastReadingTime').textContent = '🕒 ' + (r.timestamp_algeria || '—');
+      document.getElementById('currentGrid').innerHTML = `
         ${cell('🌡️', 'Température', r.temperature, '°C')}
         ${cell('💧', 'Humidité air', r.humidity, '%')}
         ${cell('🍃', 'Leaf wetness', r.leaf_wetness, '')}
         ${cell('🌧️', 'Pluie', r.precipitation, 'mm')}
         ${cell('💨', 'Vent', r.wind_speed, 'km/h')}
         ${cell('🧭', 'Direction', r.wind_direction_label || '—', '')}
-        ${cell('🌱', 'Sol (cb)', r.soil_cb, 'cb')}
+        ${cell('🌱', 'Sol', r.soil_cb, 'cb')}
         ${cell('📊', 'Pression', r.pressure_hpa, 'hPa')}
         ${cell('🟢', 'NPK N', r.npk_n, 'mg/kg')}
         ${cell('🔵', 'NPK P', r.npk_p, 'mg/kg')}
         ${cell('🟣', 'NPK K', r.npk_k, 'mg/kg')}
-        ${cell('🕒', 'Reçu à', r.timestamp ? r.timestamp.split(' ')[1] : '—', '')}
+        ${cell('#', 'Période', r.period_index, '')}
       `;
       document.getElementById('currentReading').style.display = 'block';
+    } else {
+      document.getElementById('currentReading').style.display = 'none';
     }
 
-    // Table
     const c = document.getElementById('tableContainer');
     if (data.periods.length === 0) {
-      c.innerHTML = `<div class="empty-state">
-        <div class="empty-state-icon">📡</div>
-        En attente de données ESP32...
-      </div>`;
+      c.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📡</div>En attente de données ESP32...</div>`;
     } else {
       let html = `<table>
         <thead><tr>
-          <th>#</th><th>T°C</th><th>Hum%</th><th>Pluie</th><th>Vent</th><th>LW</th>
+          <th>#</th><th>Date</th><th>Heure</th>
+          <th>T°C</th><th>Hum%</th><th>Pluie</th><th>Vent</th><th>LW</th>
           <th>Pres</th><th>Sol</th><th>N</th><th>P</th><th>K</th>
         </tr></thead><tbody>`;
-      data.periods.slice().reverse().forEach((p, i) => {
-        html += `<tr>
-          <td class="col-period">${i+1}</td>
+      data.periods.forEach((p, i) => {
+        const inFusion = i < req;  // Les 7 premières (= plus récentes) sont utilisées pour la fusion
+        const cls = inFusion ? 'fusion-window' : '';
+        html += `<tr class="${cls}">
+          <td class="col-period">${data.periods.length - i}</td>
+          <td class="col-date">${fmtDate(p.first_ts)}</td>
+          <td class="col-date">${fmtTime(p.first_ts)}</td>
           <td>${fmt(p.temperature)}</td>
           <td>${fmt(p.humidity)}</td>
           <td>${fmt(p.precipitation)}</td>
@@ -742,10 +703,7 @@ async function loadDashboard() {
       c.innerHTML = html;
     }
   } catch (e) {
-    document.getElementById('tableContainer').innerHTML = `<div class="empty-state">
-      <div class="empty-state-icon">⚠️</div>
-      Impossible de charger les données.
-    </div>`;
+    document.getElementById('tableContainer').innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div>Impossible de charger les données.</div>`;
   }
 }
 
@@ -760,8 +718,32 @@ function cell(icon, label, value, unit) {
 
 function fmt(v) { return (v === null || v === undefined) ? '—' : v; }
 
-// Auto-refresh dashboard si actif
-setInterval(() => { if (currentTab === 'dashboard') loadDashboard(); }, 15000);
+// ============ RESET ============
+function showResetModal() { document.getElementById('resetModal').classList.add('show'); }
+function hideResetModal() { document.getElementById('resetModal').classList.remove('show'); }
+
+async function confirmReset() {
+  hideResetModal();
+  try {
+    const res = await fetch(`${getServerUrl()}/api/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm: 'YES_DELETE_ALL' })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert(`✅ ${data.deleted} ligne(s) supprimée(s)`);
+      loadDashboard();
+      checkStatus();
+    } else {
+      alert('Erreur : ' + (data.error || 'inconnue'));
+    }
+  } catch (e) {
+    alert('Impossible de joindre le serveur');
+  }
+}
+
+setInterval(() => { if (currentTab === 'dashboard') loadDashboard(); }, 10000);
 </script>
 </body>
 </html>
